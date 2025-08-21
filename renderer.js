@@ -85,3 +85,57 @@ class Piece {
     }
   }
 }
+
+let dropCounter = 0;
+let dropInterval = 1000; // La pieza cae cada 1000 milisegundos (1 segundo)
+let lastTime = 0;
+
+// La función principal del juego que se ejecuta en un bucle
+function gameLoop(time = 0) {
+  const deltaTime = time - lastTime;
+  lastTime = time;
+
+  dropCounter += deltaTime;
+  if (dropCounter > dropInterval) {
+    piece.y++; // Mover la pieza una posición hacia abajo
+    dropCounter = 0;
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+  drawBoard(); // Redibujar el tablero
+  piece.draw(); // Redibujar la pieza
+
+  // Llamar a la siguiente iteración del bucle
+  requestAnimationFrame(gameLoop);
+}
+
+// Función para crear una nueva pieza aleatoria
+function createNewPiece() {
+  const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
+  const shape = PIECES[randomPieceIndex];
+  const color = COLORS[randomPieceIndex];
+  piece = new Piece(shape, color);
+}
+
+// Iniciar el juego
+createBoard();
+createNewPiece();
+gameLoop();
+
+// Añadir un listener de eventos para el teclado
+document.addEventListener('keydown', event => {
+  if (event.key === 'ArrowLeft') {
+    piece.x--;
+  } else if (event.key === 'ArrowRight') {
+    piece.x++;
+  } else if (event.key === 'ArrowDown') {
+    // Acelerar la caída de la pieza
+    dropCounter = dropInterval;
+  } else if (event.key === 'ArrowUp') {
+    // Implementar la rotación de la pieza
+    // (Esta lógica será más compleja y la veremos en el siguiente paso)
+  }
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  drawBoard();
+  piece.draw();
+});
