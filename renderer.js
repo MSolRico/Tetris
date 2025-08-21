@@ -74,11 +74,12 @@ function drawBoard() {
 
 // Clase para representar una pieza
 class Piece {
-  constructor(shape, color) {
+  constructor(shape, color, id) {
     this.shape = shape;
     this.color = color;
-    this.x = Math.floor(COLS / 2) - Math.floor(shape[0].length / 2); // Posición inicial X
-    this.y = 0; // Posición inicial Y
+    this.id = id;
+    this.x = Math.floor(COLS / 2) - Math.floor(shape[0].length / 2);
+    this.y = 0;
   }
 
   // Dibujar la pieza
@@ -143,7 +144,7 @@ function createNewPiece() {
   const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
   const shape = PIECES[randomPieceIndex];
   const color = COLORS[randomPieceIndex];
-  piece = new Piece(shape, color);
+  piece = new Piece(shape, color, randomPieceIndex + 1); // <-- +1 para que el id no sea 0
 
   if (isColliding()) {
     console.log("¡Fin del juego!");
@@ -167,7 +168,8 @@ function gameLoop(time = 0) {
       for (let row = 0; row < piece.shape.length; row++) {
         for (let col = 0; col < piece.shape[row].length; col++) {
           if (piece.shape[row][col] > 0) {
-            board[piece.y + row][piece.x + col] = PIECES.indexOf(piece.shape) + 1;
+            // Utiliza el 'id' de la pieza en lugar de buscarla en el array
+            board[piece.y + row][piece.x + col] = piece.id; 
           }
         }
       }
