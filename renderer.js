@@ -2,6 +2,7 @@
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
+const { ipcRenderer } = require('electron');
 
 // Definir el tamaño de cada cuadrado en el tablero
 const GRID_SIZE = 30;
@@ -148,6 +149,7 @@ function createNewPiece() {
     console.log("¡Fin del juego!");
     cancelAnimationFrame(animationId); // ¡DETENER EL BUCLE!
     // Lógica para mostrar "Game Over"
+    ipcRenderer.send('show-notification', 'Fin del juego', `Tu puntuación final es: ${score}`);
   }
 }
 
