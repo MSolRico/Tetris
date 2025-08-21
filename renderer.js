@@ -91,21 +91,33 @@ let dropInterval = 1000; // La pieza cae cada 1000 milisegundos (1 segundo)
 let lastTime = 0;
 
 // La función principal del juego que se ejecuta en un bucle
+// Modifica la función gameLoop() en renderer.js
 function gameLoop(time = 0) {
   const deltaTime = time - lastTime;
   lastTime = time;
 
   dropCounter += deltaTime;
   if (dropCounter > dropInterval) {
-    piece.y++; // Mover la pieza una posición hacia abajo
+    piece.y++;
+    if (isColliding()) {
+      piece.y--; // Volver a la posición anterior
+      // Fijar la pieza al tablero
+      for (let row = 0; row < piece.shape.length; row++) {
+        for (let col = 0; col < piece.shape[row].length; col++) {
+          if (piece.shape[row][col] > 0) {
+            board[piece.y + row][piece.x + col] = piece.shape[row][col] + 1; // +1 para asignar un color válido
+          }
+        }
+      }
+      createNewPiece(); // Crear una nueva pieza
+    }
     dropCounter = 0;
   }
 
-  context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
-  drawBoard(); // Redibujar el tablero
-  piece.draw(); // Redibujar la pieza
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  drawBoard();
+  piece.draw();
 
-  // Llamar a la siguiente iteración del bucle
   requestAnimationFrame(gameLoop);
 }
 
@@ -123,19 +135,55 @@ createNewPiece();
 gameLoop();
 
 // Añadir un listener de eventos para el teclado
+// Modifica el event listener para el teclado
 document.addEventListener('keydown', event => {
   if (event.key === 'ArrowLeft') {
     piece.x--;
+    if (isColliding()) {
+      piece.x++; // Deshacer el movimiento
+    }
   } else if (event.key === 'ArrowRight') {
     piece.x++;
+    if (isColliding()) {
+      piece.x--; // Deshacer el movimiento
+    }
   } else if (event.key === 'ArrowDown') {
-    // Acelerar la caída de la pieza
-    dropCounter = dropInterval;
+    piece.y++;
+    if (isColliding()) {
+      piece.y--;
+    }
   } else if (event.key === 'ArrowUp') {
-    // Implementar la rotación de la pieza
-    // (Esta lógica será más compleja y la veremos en el siguiente paso)
+    // La lógica de rotación vendrá en el próximo paso
   }
+
   context.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
   piece.draw();
 });
+
+// Verifica si la pieza actual colisiona con el tablero
+function isColliding() {
+  for (let row = 0; row < piece.shape.length; row++) {
+    for (let col = 0; col < piece.shape[row].length; col++) {
+      // Ignorar los espacios vacíos de la pieza
+      if (piece.shape[row][col] === 0) {
+        continue;
+      }
+      
+      const newX = piece.x + col;
+      const newY = piece.y + row;
+
+      // Colisión con los bordes horizontales o verticales
+      if (newX < 0 || newX >= COLS || newY >= ROWS) {
+        return true;
+      }
+
+      // Colisión con piezas ya fijadas en el tablero
+      // Asegurarse de que no estamos fuera de los límites de la matriz 'board'
+      if (newY < ROWS && board[newY][newX] !== 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
