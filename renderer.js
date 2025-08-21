@@ -3,6 +3,13 @@ const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
 const startButton = document.getElementById('start-button');
 const highScoresList = document.getElementById('high-scores-list');
+const nextPieceCanvas = document.getElementById('nextPieceCanvas');
+const nextPieceContext = nextPieceCanvas.getContext('2d');
+const gameOverScreen = document.getElementById('game-over-screen');
+const finalScoreElement = document.getElementById('final-score');
+const playerNameInput = document.getElementById('player-name');
+const saveScoreButton = document.getElementById('save-score-button');
+const playAgainButton = document.getElementById('play-again-button');
 
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
@@ -41,12 +48,23 @@ const COLORS = [
 // Variables del juego
 let board = [];
 let piece;
+let nextPiece;
 let score = 0;
 let animationId; // Para controlar el bucle de animación
 let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
 let isGameOver = false;
+
+// Mensajes personalizados para la pantalla de Game Over según la puntuación
+const gameOverMessages = [
+  { threshold: 50, message: "¡Ni para empezar!" },
+  { threshold: 200, message: "¿Eso es todo lo que tienes?" },
+  { threshold: 500, message: "Podría ser mejor..." },
+  { threshold: 1000, message: "¡Bien jugado!" },
+  { threshold: 2000, message: "¡Excelente!" },
+  { threshold: Infinity, message: "¡Impresionante maestro Tetris!" },
+];
 
 // Inicializar el tablero con celdas vacías (0)
 function createBoard() {
@@ -96,6 +114,24 @@ class Piece {
   }
 }
 
+// Dibuja la siguiente pieza en el canvas secundario
+function drawNextPiece() {
+    nextPieceContext.clearRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
+    const shape = nextPiece.shape;
+    const color = nextPiece.color;
+    for (let row = 0; row < shape.length; row++) {
+        for (let col = 0; col < shape[row].length; col++) {
+            if (shape[row][col] > 0) {
+                // Dibuja la pieza en el canvas secundario, con un ajuste de posición
+                nextPieceContext.fillStyle = color;
+                nextPieceContext.fillRect(col * (GRID_SIZE / 1.5), row * (GRID_SIZE / 1.5), GRID_SIZE / 1.5, GRID_SIZE / 1.5);
+                nextPieceContext.strokeStyle = 'black';
+                nextPieceContext.strokeRect(col * (GRID_SIZE / 1.5), row * (GRID_SIZE / 1.5), GRID_SIZE / 1.5, GRID_SIZE / 1.5);
+            }
+        }
+    }
+}
+
 // LÓGICA DEL JUEGO
 function isColliding() {
   for (let row = 0; row < piece.shape.length; row++) {
@@ -142,11 +178,30 @@ function updateScore(linesCleared) {
   scoreElement.innerText = score;
 }
 
+function getRandomPiece() {
+    const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
+    const shape = PIECES[randomPieceIndex];
+    const color = COLORS[randomPieceIndex];
+    return new Piece(shape, color, randomPieceIndex + 1);
+}
+
 function createNewPiece() {
-  const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
-  const shape = PIECES[randomPieceIndex];
-  const color = COLORS[randomPieceIndex];
-  piece = new Piece(shape, color, randomPieceIndex + 1);
+  // Si ya hay una siguiente pieza, la usamos
+  if (nextPiece) {
+    piece = nextPiece;
+  } else {
+    // Si no, generamos una pieza inicial para el juego
+    piece = getRandomPiece();
+  }
+
+  // Generamos la siguiente pieza y la guardamos en la cola
+  nextPiece = getRandomPiece();
+
+  if (isColliding()) {
+    isGameOver = true;
+    ipcRenderer.send('show-notification', 'Fin del juego', `Tu puntuación final es: ${score}`);
+    showStartScreen();
+  }
 }
 
 // BUCLE PRINCIPAL DEL JUEGO
@@ -181,10 +236,14 @@ function gameLoop(time = 0) {
       // Lógica de Game Over después de crear la nueva pieza
       if (isColliding()) {
         isGameOver = true;
+        
+        // Detén el bucle inmediatamente
+        cancelAnimationFrame(animationId); 
+
+        // Luego, muestra la notificación y la pantalla de Game Over
         ipcRenderer.send('show-notification', 'Fin del juego', `Tu puntuación final es: ${score}`);
-        checkHighScore();
-        showStartScreen();
-        return;
+        showGameOverScreen();
+        return; // Sal del bucle inmediatamente
       }
     }
     dropCounter = 0;
@@ -193,6 +252,7 @@ function gameLoop(time = 0) {
   context.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
   piece.draw();
+  drawNextPiece();
   
   animationId = requestAnimationFrame(gameLoop);
 }
@@ -208,16 +268,6 @@ function saveHighScore(name, score) {
   scores.push({ name, score });
   const sortedScores = scores.sort((a, b) => b.score - a.score).slice(0, 5);
   localStorage.setItem('highScores', JSON.stringify(sortedScores));
-}
-
-function checkHighScore() {
-  const highScores = getHighScores();
-  if (score > 0 && (highScores.length < 5 || score > highScores[highScores.length - 1].score)) {
-    const playerName = prompt("¡Nuevo récord! Ingresa tu nombre:");
-    if (playerName) {
-      saveHighScore(playerName, score);
-    }
-  }
 }
 
 function renderHighScores() {
@@ -236,6 +286,8 @@ function showStartScreen() {
   startScreen.classList.add('screen-visible');
   gameScreen.classList.remove('screen-visible');
   gameScreen.classList.add('screen-hidden');
+  gameOverScreen.classList.remove('screen-visible');
+  gameOverScreen.classList.add('screen-hidden');
   renderHighScores();
 }
 
@@ -244,6 +296,33 @@ function showGameScreen() {
   startScreen.classList.add('screen-hidden');
   gameScreen.classList.remove('screen-hidden');
   gameScreen.classList.add('screen-visible');
+  gameOverScreen.classList.remove('screen-visible');
+  gameOverScreen.classList.add('screen-hidden');
+}
+
+function showGameOverScreen() {
+  gameScreen.classList.remove('screen-visible');
+  gameScreen.classList.add('screen-hidden');
+  startScreen.classList.remove('screen-visible');
+  startScreen.classList.add('screen-hidden');
+  gameOverScreen.classList.remove('screen-hidden');
+  gameOverScreen.classList.add('screen-visible');
+  
+  finalScoreElement.innerText = score;
+
+  // Encuentra el mensaje adecuado basado en la puntuación
+  let gameOverMessage = "¡Fin de la Partida!"; // Mensaje por defecto
+  for (const messageConfig of gameOverMessages) {
+    if (score < messageConfig.threshold) {
+      gameOverMessage = messageConfig.message;
+      break;
+    }
+  }
+
+  // Busca un elemento con el id 'game-over-message' en tu HTML
+    const gameOverMessageElement = gameOverScreen.querySelector('.header .game-over-message');  if (gameOverMessageElement) {
+    gameOverMessageElement.innerText = gameOverMessage;
+  } 
 }
 
 // EVENT LISTENERS
@@ -276,6 +355,17 @@ document.addEventListener('keydown', event => {
   context.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
   piece.draw();
+});
+
+saveScoreButton.addEventListener('click', () => {
+  const playerName = playerNameInput.value || "Jugador";
+  saveHighScore(playerName, score);
+  showStartScreen();
+});
+
+playAgainButton.addEventListener('click', () => {
+  showGameScreen();
+  startNewGame();
 });
 
 // Función para reiniciar el juego

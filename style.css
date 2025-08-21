@@ -135,3 +135,75 @@ body {
   font-size: 2rem;
   font-weight: bold;
 }
+
+/* Estilos para la pantalla de fin del juego */
+#game-over-screen {
+  text-align: center;
+  gap: 20px;
+}
+
+#game-over-screen .header {
+  padding: 20px;
+  background-color: #34495e;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#game-over-screen h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.final-score {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #f1c40f;
+}
+
+.score-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.score-input input {
+  font-family: 'Press Start 2P', cursive;
+  padding: 8px;
+  border: 2px solid #2c3e50;
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  text-align: center;
+  font-size: 1rem;
+}
+
+#save-score-button, #play-again-button {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-bottom: 4px solid #229954;
+  transition: all 0.1s ease-in-out;
+}
+
+#save-score-button {
+  background-color: #27ae60;
+  color: white;
+}
+
+#save-score-button:hover {
+  background-color: #2ecc71;
+}
+
+#play-again-button {
+  background-color: #e74c3c;
+  color: white;
+  margin-top: 10px;
+  border-bottom-color: #c0392b;
+}
+
+#play-again-button:hover {
+  background-color: #f66d5b;
+}

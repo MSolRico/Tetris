@@ -18,6 +18,21 @@
       </div>
     </div>
 
+    <div id="game-over-screen" class="screen-hidden">
+  <div class="header">
+    <h1>GAME OVER</h1>
+    <h2 class="game-over-message"></h2> 
+    <p class="final-score">Puntuación Final: <span id="final-score">0</span></p>
+        
+        <div class="score-input">
+          <label for="player-name">Ingresa tu nombre:</label>
+          <input type="text" id="player-name" maxlength="10">
+          <button id="save-score-button">Guardar Puntuación</button>
+        </div>
+        <button id="play-again-button">Jugar de Nuevo</button>
+      </div>
+    </div>
+
     <div id="game-screen" class="screen-hidden">
       <div class="game-wrapper">
         <div class="header">
