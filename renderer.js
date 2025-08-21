@@ -58,12 +58,13 @@ let isGameOver = false;
 
 // Mensajes personalizados para la pantalla de Game Over según la puntuación
 const gameOverMessages = [
-  { threshold: 50, message: "¡Ni para empezar!" },
-  { threshold: 200, message: "¿Eso es todo lo que tienes?" },
-  { threshold: 500, message: "Podría ser mejor..." },
-  { threshold: 1000, message: "¡Bien jugado!" },
-  { threshold: 2000, message: "¡Excelente!" },
-  { threshold: Infinity, message: "¡Impresionante maestro Tetris!" },
+  { threshold: 50, message: "¡Sos malisimo, man!" },
+  { threshold: 500, message: "¿Eso es todo, salame?" },
+  { threshold: 3000, message: "Podría ser peor, pero no mucho." },
+  { threshold: 5000, message: "¡Zafaste!" },
+  { threshold: 8000, message: "¡Va queriendo!" },
+  { threshold: 10000, message: "¡Sos un capo!" },
+  { threshold: Infinity, message: "¡Vos no sos humano, sos una máquina de Tetris!" },
 ];
 
 // Inicializar el tablero con celdas vacías (0)
@@ -116,20 +117,20 @@ class Piece {
 
 // Dibuja la siguiente pieza en el canvas secundario
 function drawNextPiece() {
-    nextPieceContext.clearRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
-    const shape = nextPiece.shape;
-    const color = nextPiece.color;
-    for (let row = 0; row < shape.length; row++) {
-        for (let col = 0; col < shape[row].length; col++) {
-            if (shape[row][col] > 0) {
-                // Dibuja la pieza en el canvas secundario, con un ajuste de posición
-                nextPieceContext.fillStyle = color;
-                nextPieceContext.fillRect(col * (GRID_SIZE / 1.5), row * (GRID_SIZE / 1.5), GRID_SIZE / 1.5, GRID_SIZE / 1.5);
-                nextPieceContext.strokeStyle = 'black';
-                nextPieceContext.strokeRect(col * (GRID_SIZE / 1.5), row * (GRID_SIZE / 1.5), GRID_SIZE / 1.5, GRID_SIZE / 1.5);
-            }
-        }
+  nextPieceContext.clearRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
+  const shape = nextPiece.shape;
+  const color = nextPiece.color;
+  for (let row = 0; row < shape.length; row++) {
+    for (let col = 0; col < shape[row].length; col++) {
+      if (shape[row][col] > 0) {
+        // Dibuja la pieza en el canvas secundario, con un ajuste de posición
+        nextPieceContext.fillStyle = color;
+        nextPieceContext.fillRect(col * (GRID_SIZE / 1.5), row * (GRID_SIZE / 1.5), GRID_SIZE / 1.5, GRID_SIZE / 1.5);
+        nextPieceContext.strokeStyle = 'black';
+        nextPieceContext.strokeRect(col * (GRID_SIZE / 1.5), row * (GRID_SIZE / 1.5), GRID_SIZE / 1.5, GRID_SIZE / 1.5);
+      }
     }
+  }
 }
 
 // LÓGICA DEL JUEGO
@@ -179,10 +180,10 @@ function updateScore(linesCleared) {
 }
 
 function getRandomPiece() {
-    const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
-    const shape = PIECES[randomPieceIndex];
-    const color = COLORS[randomPieceIndex];
-    return new Piece(shape, color, randomPieceIndex + 1);
+  const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
+  const shape = PIECES[randomPieceIndex];
+  const color = COLORS[randomPieceIndex];
+  return new Piece(shape, color, randomPieceIndex + 1);
 }
 
 function createNewPiece() {
@@ -301,10 +302,10 @@ function showGameScreen() {
 }
 
 function showGameOverScreen() {
-  gameScreen.classList.remove('screen-visible');
-  gameScreen.classList.add('screen-hidden');
   startScreen.classList.remove('screen-visible');
   startScreen.classList.add('screen-hidden');
+  gameScreen.classList.remove('screen-visible');
+  gameScreen.classList.add('screen-hidden');
   gameOverScreen.classList.remove('screen-hidden');
   gameOverScreen.classList.add('screen-visible');
   
@@ -320,7 +321,7 @@ function showGameOverScreen() {
   }
 
   // Busca un elemento con el id 'game-over-message' en tu HTML
-    const gameOverMessageElement = gameOverScreen.querySelector('.header .game-over-message');  if (gameOverMessageElement) {
+    const gameOverMessageElement = gameOverScreen.querySelector('.header .game-over-message'); if (gameOverMessageElement) {
     gameOverMessageElement.innerText = gameOverMessage;
   } 
 }
