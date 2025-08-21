@@ -18,6 +18,7 @@ body {
   align-items: center;
   height: 100vh;
   margin: 0;
+  overflow: hidden;
 }
 
 .game-wrapper {
@@ -26,8 +27,75 @@ body {
 
 .header h1 {
   font-size: 2.5rem;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Control de visibilidad de las pantallas */
+.screen-hidden {
+  display: none;
+}
+
+.screen-visible {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Estilos de la pantalla de inicio */
+#start-screen {
+  text-align: center;
+  gap: 30px;
+}
+
+#start-button {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.5rem;
+  padding: 10px 20px;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-bottom: 4px solid #229954;
+  transition: all 0.1s ease-in-out;
+}
+
+#start-button:hover {
+  background-color: #2ecc71;
+}
+
+#start-button:active {
+  background-color: #229954;
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+.high-scores-container {
+  background-color: #34495e;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.high-scores-container h2 {
+  font-size: 1.2rem;
+  margin-top: 0;
+  border-bottom: 2px solid #f1c40f;
+  padding-bottom: 5px;
+}
+
+#high-scores-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#high-scores-list li {
+  font-size: 1rem;
+  margin: 5px 0;
+  text-align: left;
 }
 
 .game-container {

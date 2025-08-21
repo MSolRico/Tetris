@@ -1,4 +1,9 @@
 // Obtener el canvas y su contexto
+const startScreen = document.getElementById('start-screen');
+const gameScreen = document.getElementById('game-screen');
+const startButton = document.getElementById('start-button');
+const highScoresList = document.getElementById('high-scores-list');
+
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
@@ -41,15 +46,12 @@ let animationId; // Para controlar el bucle de animación
 let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
-let isGameOver = false; // ¡Nuevo! Flag para el estado del juego
+let isGameOver = false;
 
 // Inicializar el tablero con celdas vacías (0)
 function createBoard() {
   for (let row = 0; row < ROWS; row++) {
-    board[row] = [];
-    for (let col = 0; col < COLS; col++) {
-      board[row][col] = 0;
-    }
+    board[row] = new Array(COLS).fill(0);
   }
 }
 
@@ -180,6 +182,9 @@ function gameLoop(time = 0) {
       if (isColliding()) {
         isGameOver = true;
         ipcRenderer.send('show-notification', 'Fin del juego', `Tu puntuación final es: ${score}`);
+        checkHighScore();
+        showStartScreen();
+        return;
       }
     }
     dropCounter = 0;
@@ -192,7 +197,61 @@ function gameLoop(time = 0) {
   animationId = requestAnimationFrame(gameLoop);
 }
 
-// CONTROL DE TECLADO
+// GESTIÓN DE PUNTUACIONES ALTAS
+function getHighScores() {
+  const scores = JSON.parse(localStorage.getItem('highScores')) || [];
+  return scores.sort((a, b) => b.score - a.score).slice(0, 5);
+}
+
+function saveHighScore(name, score) {
+  const scores = getHighScores();
+  scores.push({ name, score });
+  const sortedScores = scores.sort((a, b) => b.score - a.score).slice(0, 5);
+  localStorage.setItem('highScores', JSON.stringify(sortedScores));
+}
+
+function checkHighScore() {
+  const highScores = getHighScores();
+  if (score > 0 && (highScores.length < 5 || score > highScores[highScores.length - 1].score)) {
+    const playerName = prompt("¡Nuevo récord! Ingresa tu nombre:");
+    if (playerName) {
+      saveHighScore(playerName, score);
+    }
+  }
+}
+
+function renderHighScores() {
+  const scores = getHighScores();
+  highScoresList.innerHTML = '';
+  scores.forEach((s, index) => {
+    const listItem = document.createElement('li');
+    listItem.innerText = `${index + 1}. ${s.name}: ${s.score}`;
+    highScoresList.appendChild(listItem);
+  });
+}
+
+// GESTIÓN DE LA PANTALLA
+function showStartScreen() {
+  startScreen.classList.remove('screen-hidden');
+  startScreen.classList.add('screen-visible');
+  gameScreen.classList.remove('screen-visible');
+  gameScreen.classList.add('screen-hidden');
+  renderHighScores();
+}
+
+function showGameScreen() {
+  startScreen.classList.remove('screen-visible');
+  startScreen.classList.add('screen-hidden');
+  gameScreen.classList.remove('screen-hidden');
+  gameScreen.classList.add('screen-visible');
+}
+
+// EVENT LISTENERS
+startButton.addEventListener('click', () => {
+  showGameScreen();
+  startNewGame();
+});
+
 document.addEventListener('keydown', event => {
   // Si el juego ha terminado, no se puede mover la pieza
   if (isGameOver) {
@@ -229,5 +288,5 @@ function startNewGame() {
   gameLoop();
 }
 
-// INICIAR EL JUEGO AL PRINCIPIO
-startNewGame();
+// Muestra la pantalla de inicio al cargar la aplicación
+showStartScreen();
