@@ -140,12 +140,12 @@ document.addEventListener('keydown', event => {
   if (event.key === 'ArrowLeft') {
     piece.x--;
     if (isColliding()) {
-      piece.x++; // Deshacer el movimiento
+      piece.x++;
     }
   } else if (event.key === 'ArrowRight') {
     piece.x++;
     if (isColliding()) {
-      piece.x--; // Deshacer el movimiento
+      piece.x--;
     }
   } else if (event.key === 'ArrowDown') {
     piece.y++;
@@ -153,9 +153,15 @@ document.addEventListener('keydown', event => {
       piece.y--;
     }
   } else if (event.key === 'ArrowUp') {
-    // La lógica de rotación vendrá en el próximo paso
+    const originalShape = piece.shape;
+    piece.shape = rotatePiece(originalShape);
+    
+    // Si la rotación causa una colisión, se revierte
+    if (isColliding()) {
+      piece.shape = originalShape;
+    }
   }
-
+  
   context.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
   piece.draw();
@@ -186,4 +192,15 @@ function isColliding() {
     }
   }
   return false;
+}
+
+// Rota la matriz de la pieza 90 grados en sentido horario
+function rotatePiece(pieceShape) {
+  // Transponer la matriz (las filas se convierten en columnas)
+  const rotatedShape = pieceShape[0].map((_, index) =>
+    pieceShape.map(row => row[index])
+  );
+  
+  // Invertir las filas para completar la rotación
+  return rotatedShape.map(row => row.reverse());
 }
