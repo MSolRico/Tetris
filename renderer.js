@@ -1,6 +1,7 @@
 // Obtener el canvas y su contexto
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
+const scoreElement = document.getElementById('score');
 
 // Definir el tamaño de cada cuadrado en el tablero
 const GRID_SIZE = 30;
@@ -35,6 +36,11 @@ const COLORS = [
 let board = [];
 let piece;
 let score = 0;
+let animationId; // Para controlar el bucle de animación
+
+let dropCounter = 0;
+let dropInterval = 1000;
+let lastTime = 0;
 
 // Inicializar el tablero con celdas vacías (0)
 function createBoard() {
@@ -86,16 +92,70 @@ class Piece {
   }
 }
 
-let dropCounter = 0;
-let dropInterval = 1000; // La pieza cae cada 1000 milisegundos (1 segundo)
-let lastTime = 0;
+// LÓGICA DEL JUEGO
+function isColliding() {
+  for (let row = 0; row < piece.shape.length; row++) {
+    for (let col = 0; col < piece.shape[row].length; col++) {
+      if (piece.shape[row][col] === 0) continue;
+      const newX = piece.x + col;
+      const newY = piece.y + row;
+      if (newX < 0 || newX >= COLS || newY >= ROWS) return true;
+      if (newY < ROWS && board[newY][newX] !== 0) return true;
+    }
+  }
+  return false;
+}
 
-// La función principal del juego que se ejecuta en un bucle
-// Modifica la función gameLoop() en renderer.js
+function rotatePiece(pieceShape) {
+  const rotatedShape = pieceShape[0].map((_, index) =>
+    pieceShape.map(row => row[index])
+  );
+  return rotatedShape.map(row => row.reverse());
+}
+
+function checkLines() {
+  let linesCleared = 0;
+  for (let row = ROWS - 1; row >= 0; row--) {
+    if (board[row].every(cell => cell > 0)) {
+      linesCleared++;
+      board.splice(row, 1);
+      board.unshift(new Array(COLS).fill(0));
+      row++;
+    }
+  }
+  return linesCleared;
+}
+
+function updateScore(linesCleared) {
+  let points = 0;
+  switch (linesCleared) {
+    case 1: points = 100; break;
+    case 2: points = 300; break;
+    case 3: points = 500; break;
+    case 4: points = 800; break;
+  }
+  score += points;
+  scoreElement.innerText = score;
+}
+
+function createNewPiece() {
+  const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
+  const shape = PIECES[randomPieceIndex];
+  const color = COLORS[randomPieceIndex];
+  piece = new Piece(shape, color);
+
+  if (isColliding()) {
+    console.log("¡Fin del juego!");
+    cancelAnimationFrame(animationId); // ¡DETENER EL BUCLE!
+    // Lógica para mostrar "Game Over"
+  }
+}
+
+// BUCLE PRINCIPAL DEL JUEGO
 function gameLoop(time = 0) {
   const deltaTime = time - lastTime;
   lastTime = time;
-
+  
   dropCounter += deltaTime;
   if (dropCounter > dropInterval) {
     piece.y++;
@@ -105,65 +165,41 @@ function gameLoop(time = 0) {
       for (let row = 0; row < piece.shape.length; row++) {
         for (let col = 0; col < piece.shape[row].length; col++) {
           if (piece.shape[row][col] > 0) {
-            board[piece.y + row][piece.x + col] = PIECES.indexOf(piece.shape) + 1; // Arreglar el índice de color
+            board[piece.y + row][piece.x + col] = PIECES.indexOf(piece.shape) + 1;
           }
         }
       }
       
       const linesCleared = checkLines();
       updateScore(linesCleared);
-
+      
       createNewPiece();
     }
     dropCounter = 0;
   }
-
+  
   context.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
   piece.draw();
-
-  requestAnimationFrame(gameLoop);
+  
+  animationId = requestAnimationFrame(gameLoop);
 }
 
-// Función para crear una nueva pieza aleatoria
-function createNewPiece() {
-  const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
-  const shape = PIECES[randomPieceIndex];
-  const color = COLORS[randomPieceIndex];
-  piece = new Piece(shape, color);
-}
-
-// Iniciar el juego
-createBoard();
-createNewPiece();
-gameLoop();
-
-// Añadir un listener de eventos para el teclado
-// Modifica el event listener para el teclado
+// CONTROL DE TECLADO
 document.addEventListener('keydown', event => {
   if (event.key === 'ArrowLeft') {
     piece.x--;
-    if (isColliding()) {
-      piece.x++;
-    }
+    if (isColliding()) piece.x++;
   } else if (event.key === 'ArrowRight') {
     piece.x++;
-    if (isColliding()) {
-      piece.x--;
-    }
+    if (isColliding()) piece.x--;
   } else if (event.key === 'ArrowDown') {
     piece.y++;
-    if (isColliding()) {
-      piece.y--;
-    }
+    if (isColliding()) piece.y--;
   } else if (event.key === 'ArrowUp') {
     const originalShape = piece.shape;
     piece.shape = rotatePiece(originalShape);
-    
-    // Si la rotación causa una colisión, se revierte
-    if (isColliding()) {
-      piece.shape = originalShape;
-    }
+    if (isColliding()) piece.shape = originalShape;
   }
   
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -171,90 +207,7 @@ document.addEventListener('keydown', event => {
   piece.draw();
 });
 
-// Verifica si la pieza actual colisiona con el tablero
-function isColliding() {
-  for (let row = 0; row < piece.shape.length; row++) {
-    for (let col = 0; col < piece.shape[row].length; col++) {
-      // Ignorar los espacios vacíos de la pieza
-      if (piece.shape[row][col] === 0) {
-        continue;
-      }
-      
-      const newX = piece.x + col;
-      const newY = piece.y + row;
-
-      // Colisión con los bordes horizontales o verticales
-      if (newX < 0 || newX >= COLS || newY >= ROWS) {
-        return true;
-      }
-
-      // Colisión con piezas ya fijadas en el tablero
-      // Asegurarse de que no estamos fuera de los límites de la matriz 'board'
-      if (newY < ROWS && board[newY][newX] !== 0) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-// Rota la matriz de la pieza 90 grados en sentido horario
-function rotatePiece(pieceShape) {
-  // Transponer la matriz (las filas se convierten en columnas)
-  const rotatedShape = pieceShape[0].map((_, index) =>
-    pieceShape.map(row => row[index])
-  );
-  
-  // Invertir las filas para completar la rotación
-  return rotatedShape.map(row => row.reverse());
-}
-
-// Verifica y elimina las líneas completas
-function checkLines() {
-  let linesCleared = 0;
-  for (let row = ROWS - 1; row >= 0; row--) {
-    let isRowFull = true;
-    for (let col = 0; col < COLS; col++) {
-      if (board[row][col] === 0) {
-        isRowFull = false;
-        break;
-      }
-    }
-
-    if (isRowFull) {
-      linesCleared++;
-      // Eliminar la fila completa
-      const clearedRow = board.splice(row, 1)[0].fill(0);
-      // Añadir una nueva fila vacía en la parte superior
-      board.unshift(clearedRow);
-      // Ajustar el índice para no saltarse una fila
-      row++;
-    }
-  }
-  return linesCleared;
-}
-
-// Actualiza el marcador
-function updateScore(linesCleared) {
-  const scoreElement = document.getElementById('score');
-  
-  // Puntuación base por línea
-  let points = 0;
-  switch (linesCleared) {
-    case 1:
-      points = 100;
-      break;
-    case 2:
-      points = 300;
-      break;
-    case 3:
-      points = 500;
-      break;
-    case 4:
-      points = 800;
-      break;
-  }
-  
-  score += points;
-  scoreElement.innerText = score;
-}
+// INICIAR EL JUEGO
+createBoard();
+createNewPiece();
+gameLoop();
