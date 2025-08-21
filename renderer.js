@@ -38,10 +38,10 @@ let board = [];
 let piece;
 let score = 0;
 let animationId; // Para controlar el bucle de animación
-
 let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
+let isGameOver = false; // ¡Nuevo! Flag para el estado del juego
 
 // Inicializar el tablero con celdas vacías (0)
 function createBoard() {
@@ -144,18 +144,16 @@ function createNewPiece() {
   const randomPieceIndex = Math.floor(Math.random() * PIECES.length);
   const shape = PIECES[randomPieceIndex];
   const color = COLORS[randomPieceIndex];
-  piece = new Piece(shape, color, randomPieceIndex + 1); // <-- +1 para que el id no sea 0
-
-  if (isColliding()) {
-    console.log("¡Fin del juego!");
-    cancelAnimationFrame(animationId); // ¡DETENER EL BUCLE!
-    // Lógica para mostrar "Game Over"
-    ipcRenderer.send('show-notification', 'Fin del juego', `Tu puntuación final es: ${score}`);
-  }
+  piece = new Piece(shape, color, randomPieceIndex + 1);
 }
 
 // BUCLE PRINCIPAL DEL JUEGO
 function gameLoop(time = 0) {
+  // Si el juego ha terminado, no hacemos nada más
+  if (isGameOver) {
+    return;
+  }
+
   const deltaTime = time - lastTime;
   lastTime = time;
   
@@ -168,8 +166,7 @@ function gameLoop(time = 0) {
       for (let row = 0; row < piece.shape.length; row++) {
         for (let col = 0; col < piece.shape[row].length; col++) {
           if (piece.shape[row][col] > 0) {
-            // Utiliza el 'id' de la pieza en lugar de buscarla en el array
-            board[piece.y + row][piece.x + col] = piece.id; 
+            board[piece.y + row][piece.x + col] = piece.id;
           }
         }
       }
@@ -178,6 +175,12 @@ function gameLoop(time = 0) {
       updateScore(linesCleared);
       
       createNewPiece();
+      
+      // Lógica de Game Over después de crear la nueva pieza
+      if (isColliding()) {
+        isGameOver = true;
+        ipcRenderer.send('show-notification', 'Fin del juego', `Tu puntuación final es: ${score}`);
+      }
     }
     dropCounter = 0;
   }
@@ -191,6 +194,11 @@ function gameLoop(time = 0) {
 
 // CONTROL DE TECLADO
 document.addEventListener('keydown', event => {
+  // Si el juego ha terminado, no se puede mover la pieza
+  if (isGameOver) {
+    return;
+  }
+  
   if (event.key === 'ArrowLeft') {
     piece.x--;
     if (isColliding()) piece.x++;
@@ -211,7 +219,15 @@ document.addEventListener('keydown', event => {
   piece.draw();
 });
 
-// INICIAR EL JUEGO
-createBoard();
-createNewPiece();
-gameLoop();
+// Función para reiniciar el juego
+function startNewGame() {
+  isGameOver = false;
+  score = 0;
+  scoreElement.innerText = score;
+  createBoard();
+  createNewPiece();
+  gameLoop();
+}
+
+// INICIAR EL JUEGO AL PRINCIPIO
+startNewGame();
