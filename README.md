@@ -1,64 +1,66 @@
-# Electron
-
-## Descripción del Proyecto
-
-Una breve descripción de lo que hace tu aplicación. Por ejemplo:
-> "Esta es una aplicación de escritorio multiplataforma desarrollada con Electron JS. El objetivo del proyecto es crear un gestor de tareas simple ('Todo List') que demuestre la integración de tecnologías web (HTML, CSS, JavaScript) con APIs nativas del sistema operativo."
+# Electron Tetris
+Esta es una aplicación de escritorio multiplataforma construida con Electron JS que implementa el clásico juego Tetris. Fue desarrollada como un proyecto para el programa BTS SIO para demostrar la integración de APIs nativas y tecnologías web modernas (HTML, CSS, JS).
 
 ## Características
+- Juego Completo: La lógica de juego de Tetris está implementada por completo, incluyendo la caída de piezas, rotación, detección de colisiones, eliminación de líneas y puntuación.
 
-Lista las funcionalidades principales de tu aplicación.
-* Gestión de tareas (añadir, editar, eliminar, marcar como completadas).
-* Persistencia de datos local.
-* Menú de aplicación nativo.
-* Notificaciones del sistema.
-* Manejo de diálogos para archivos.
+- APIs Nativas: El juego utiliza APIs de Electron para ofrecer una experiencia de escritorio completa:
+
+- Menú Nativo: Un menú personalizado que permite reiniciar el juego o salir de la aplicación.
+
+- Notificaciones del Sistema: Alertas nativas para anunciar el fin de la partida.
+
+- Diálogo: Una ventana "Acerca de" que muestra información sobre el proyecto.
+
+- Diseño UX/UI: La interfaz de usuario tiene un estilo retro de 8 bits, con un diseño intuitivo que utiliza Flexbox y CSS personalizado.
+
+- Multiplataforma: La aplicación puede ser empaquetada y distribuida en sistemas operativos como Windows, macOS y Linux.
 
 ## Tecnologías Utilizadas
+- Electron JS: Framework para construir aplicaciones de escritorio con tecnologías web.
 
-Enumera las herramientas y frameworks que usaste.
-* [Electron JS](https://www.electronjs.org/)
-* [Node.js](https://nodejs.org/)
-* [npm](https://www.npmjs.com/)
-* HTML5, CSS3, JavaScript (ES6+)
-* (Opcional: Si usas algún framework de CSS, como TailwindCSS o Bootstrap, menciónalo aquí.)
+- Node.js: Entorno de ejecución para el código del proceso principal.
 
-## Instalación y Configuración
+- HTML5/CSS3: Estructura de la interfaz de usuario y estilos.
 
-Aquí es donde detallas los pasos que le diste al usuario para empezar. Es la parte más importante para la reproducibilidad del proyecto.
+- JavaScript (ES6): Lógica del juego y gestión de eventos.
 
-### Prerrequisitos
-* Node.js (versión 18.x o superior)
-* npm
+- Electron-Builder: Herramienta utilizada para empaquetar y generar los instaladores.
 
-### Pasos
-1.  **Clona el repositorio:**
-    ```bash
-    git clone [https://github.com/tu_usuario/nombre-del-repo.git](https://github.com/tu_usuario/nombre-del-repo.git)
-    cd nombre-del-repo
-    ```
-2.  **Instala las dependencias:**
-    ```bash
-    npm install
-    ```
-3.  **Ejecuta la aplicación en modo desarrollo:**
-    ```bash
-    npm start
-    ```
-    (Nota: Tendrás que crear este script en tu archivo `package.json` más adelante).
+## Instalación y Ejecución
+Para ejecutar esta aplicación, necesitarás tener Node.js y npm instalados.
 
-## Empaquetado y Distribución
+1. Clona el repositorio:
+```http
+git clone https://github.com/MSolRico/Tetris.git
+cd Tetris
+```
+2. Instala las dependencias:
 
-Explica cómo generar los ejecutables para diferentes sistemas operativos.
-* **Para Windows:** `npm run package-win`
-* **Para macOS:** `npm run package-mac`
-* **Para Linux:** `npm run package-linux`
-    (Nota: Estos scripts también se configurarán más tarde).
+```http
+npm install
+```
+3. Ejecuta la aplicación en modo desarrollo:
 
-## Capturas de Pantalla o GIFs
+```http
+npm start
+```
+## Empaquetado para Distribución
+Si quieres crear un ejecutable de la aplicación, utiliza el siguiente comando. Esto generará un instalador para tu sistema operativo en la carpeta dist.
 
-(Opcional pero muy útil) Puedes incluir imágenes o GIFs para mostrar cómo se ve la aplicación.
+```http
+npm run dist
+```
+## Estructura del Proyecto
+- main.js: El proceso principal de la aplicación. Se encarga de la ventana y las APIs nativas.
+
+- index.html: La interfaz gráfica de usuario.
+
+- renderer.js: El proceso de renderizado que contiene toda la lógica del juego.
+
+- style.css: La hoja de estilos para el diseño de la interfaz.
+
+- package.json: Manifiesto del proyecto y configuración de electron-builder.
 
 ## Licencia
-
-Menciona la licencia bajo la cual se distribuye tu proyecto (por ejemplo, [MIT](https://opensource.org/licenses/MIT)).
+Este proyecto está bajo la Licencia MIT.
