@@ -100,16 +100,20 @@ function gameLoop(time = 0) {
   if (dropCounter > dropInterval) {
     piece.y++;
     if (isColliding()) {
-      piece.y--; // Volver a la posición anterior
+      piece.y--;
       // Fijar la pieza al tablero
       for (let row = 0; row < piece.shape.length; row++) {
         for (let col = 0; col < piece.shape[row].length; col++) {
           if (piece.shape[row][col] > 0) {
-            board[piece.y + row][piece.x + col] = piece.shape[row][col] + 1; // +1 para asignar un color válido
+            board[piece.y + row][piece.x + col] = PIECES.indexOf(piece.shape) + 1; // Arreglar el índice de color
           }
         }
       }
-      createNewPiece(); // Crear una nueva pieza
+      
+      const linesCleared = checkLines();
+      updateScore(linesCleared);
+
+      createNewPiece();
     }
     dropCounter = 0;
   }
@@ -203,4 +207,54 @@ function rotatePiece(pieceShape) {
   
   // Invertir las filas para completar la rotación
   return rotatedShape.map(row => row.reverse());
+}
+
+// Verifica y elimina las líneas completas
+function checkLines() {
+  let linesCleared = 0;
+  for (let row = ROWS - 1; row >= 0; row--) {
+    let isRowFull = true;
+    for (let col = 0; col < COLS; col++) {
+      if (board[row][col] === 0) {
+        isRowFull = false;
+        break;
+      }
+    }
+
+    if (isRowFull) {
+      linesCleared++;
+      // Eliminar la fila completa
+      const clearedRow = board.splice(row, 1)[0].fill(0);
+      // Añadir una nueva fila vacía en la parte superior
+      board.unshift(clearedRow);
+      // Ajustar el índice para no saltarse una fila
+      row++;
+    }
+  }
+  return linesCleared;
+}
+
+// Actualiza el marcador
+function updateScore(linesCleared) {
+  const scoreElement = document.getElementById('score');
+  
+  // Puntuación base por línea
+  let points = 0;
+  switch (linesCleared) {
+    case 1:
+      points = 100;
+      break;
+    case 2:
+      points = 300;
+      break;
+    case 3:
+      points = 500;
+      break;
+    case 4:
+      points = 800;
+      break;
+  }
+  
+  score += points;
+  scoreElement.innerText = score;
 }
